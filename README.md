@@ -1,63 +1,60 @@
-# Milestone1
-Milestone1 documents
-
 order-service
 │
-├── domain
-│   ├── model
-│   │     Order.java
-│   │     Product.java
-│   │     Money.java
+├── domain                               ← Pure business logic (NO Spring, NO DB, NO HTTP)
+│   ├── model                             ← Domain models (Entities, Value Objects)
+│   │     Order.java                      ← Domain entity representing an order (business rules inside)
+│   │     Product.java                    ← Domain entity representing a product
+│   │     Money.java                      ← Value object for currency-safe calculations
 │   │
-│   ├── service
-│   │     PriceCalculator.java
-│   │     DiscountPolicy.java
+│   ├── service                           ← Domain services (complex business logic)
+│   │     PriceCalculator.java            ← Calculates final price using domain rules
+│   │     DiscountPolicy.java             ← Applies discount logic / business policies
 │   │
-│   ├── port
-│   │   ├── in
-│   │   │     CreateOrderUseCase.java
-│   │   │     CancelOrderUseCase.java
+│   ├── port                              ← Domain ports (interfaces)
+│   │   ├── in                            ← Inbound ports (use case definitions)
+│   │   │     CreateOrderUseCase.java     ← Interface describing “create order” use case
+│   │   │     CancelOrderUseCase.java     ← Interface describing “cancel order” use case
 │   │   │
-│   │   └── out
-│   │         PaymentPort.java
-│   │         InventoryPort.java
-│   │         OrderRepositoryPort.java
+│   │   └── out                           ← Outbound ports (domain dependencies)
+│   │         PaymentPort.java            ← Domain interface for payment external system
+│   │         InventoryPort.java          ← Domain interface for inventory external system
+│   │         OrderRepositoryPort.java    ← Domain interface for saving/fetching orders
 │   │
-│   └── dto
-│         CreateOrderCommand.java
-│         CancelOrderCommand.java
+│   └── dto                               ← Internal DTOs / Commands (immutable inputs for use cases)
+│         CreateOrderCommand.java         ← Data needed to execute create order use case
+│         CancelOrderCommand.java         ← Data needed to execute cancel order use case
 │
 │
-├── application
+├── application                           ← Application layer (use case implementations)
 │   └── service
-│         CreateOrderService.java         ← implements CreateOrderUseCase
-│         CancelOrderService.java         ← implements CancelOrderUseCase
+│         CreateOrderService.java         ← Implements CreateOrderUseCase; orchestrates domain + ports
+│         CancelOrderService.java         ← Implements CancelOrderUseCase; orchestrates domain + ports
 │
 │
-├── adapter
-│   ├── in
-│   │   └── web
-│   │         OrderController.java
+├── adapter                               ← Technical adapters (inbound & outbound)
+│   ├── in                                ← Inbound adapters (entrypoints)
+│   │   └── web                           ← REST controllers
+│   │         OrderController.java        ← Handles HTTP requests; calls inbound ports
 │   │
-│   └── out
+│   └── out                               ← Outbound adapters (implement external integrations)
 │       ├── payment
-│       │     PaymentRestAdapter.java     ← implements PaymentPort
-│       │     PaymentClient.java          ← Feign/WebClient client
+│       │     PaymentRestAdapter.java     ← Implements PaymentPort; bridges domain → Feign/WebClient
+│       │     PaymentClient.java          ← Feign/WebClient client for calling payment service
 │       │
 │       ├── inventory
-│       │     InventoryRestAdapter.java   ← implements InventoryPort
-│       │     InventoryClient.java        ← Feign/WebClient client
+│       │     InventoryRestAdapter.java   ← Implements InventoryPort; bridges domain → external API
+│       │     InventoryClient.java        ← Feign/WebClient client for calling inventory service
 │       │
-│       └── persistence
-│             OrderRepositoryAdapter.java ← implements OrderRepositoryPort
-│             JpaOrderEntity.java
-│             SpringDataOrderRepository.java
+│       └── persistence                   ← Persistence adapters
+│             OrderRepositoryAdapter.java ← Implements OrderRepositoryPort; maps domain ↔ JPA
+│             JpaOrderEntity.java         ← JPA entity mapped to database table
+│             SpringDataOrderRepository.java ← Spring Data JPA repository interface
 │
 │
-└── infrastructure
+└── infrastructure                        ← Framework configurations & app-level setup
       ├── config
-      │     FeignConfig.java
-      │     KafkaConfig.java
-      │     PersistenceConfig.java
+      │     FeignConfig.java              ← Configures Feign clients
+      │     KafkaConfig.java              ← Kafka listener/producer configuration (if used)
+      │     PersistenceConfig.java        ← Database/configuration beans
       │
-      └── application.yml
+      └── application.yml                 ← Application properties (ports, DB config, service URLs)
